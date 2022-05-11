@@ -6,6 +6,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const multer = require("multer");
+const DIR = "./uploads";
 
 const bcrypt = require("bcrypt");
 const saltRouts = 10;
@@ -55,6 +57,28 @@ db.connect((error) => {
   }
 });
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, DIR);
+  },
+  filename: (req, file, cb) => {
+    const fileName = file.originalname.split(" ").join("_");
+    let dotArray = fileName.split(".");
+    let extension = "." + dotArray.pop();
+    const newFileName =
+      Buffer.from(req.session.user[0].uid + "-" + dotArray.join("")).toString(
+        "base64"
+      ) + extension;
+    dotArray[dotArray.length - 1];
+
+    cb(null, newFileName);
+  },
+});
+
+var upload = multer({
+  storage: storage,
+});
+
 app.post("/register", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -93,7 +117,22 @@ const verifyJWT = (req, res, next) => {
     }
   }
 };
-
+app.get("/download", verifyJWT, (req, res) => {
+  res.download("./uploads/" + req.query.filename);
+});
+app.get("/getUserFiles", verifyJWT, (req, res) => {
+  if (req.session.user) {
+    const uid = req.session.user[0].uid;
+    db.query(
+      "SELECT title,filename,description FROM files WHERE uid=?",
+      [uid],
+      (err, result) => {
+        if (err) throw err;
+        res.send(result);
+      }
+    );
+  }
+});
 app.get("/isUserAuth", verifyJWT, (req, res) => {
   res.json({ auth: true });
 });
@@ -102,11 +141,11 @@ app.get("/login", verifyJWT, (req, res) => {
   if (req.session.user) {
     res.json({ loggedIn: true, user: req.session.user });
   } else {
-    res.status(401);
+    res.status(401).json({ loggedIn: false });
   }
 });
 app.get("/logout", (req, res) => {
-  res.status(202).clearCookie("access_token").send("cookie cleared");
+  res.status(202).clearCookie("access_token").send("token-cookie cleared");
 });
 app.post("/login", (req, res) => {
   const username = req.body.username;
@@ -133,7 +172,7 @@ app.post("/login", (req, res) => {
               .status(200)
               .cookie("access_token", token, {
                 httpOnly: true,
-                expires: new Date(Date.now() + 60 * 60 * 24),
+                expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
                 secure: false,
               })
               .json({ ack: true });
@@ -147,7 +186,27 @@ app.post("/login", (req, res) => {
     }
   );
 });
-
+app.post(
+  "/file/upload",
+  verifyJWT,
+  upload.single("uploaded_file"),
+  function (req, res) {
+    if (req.session.user) {
+      let uid = req.session.user[0].uid;
+      let fileTitle = req.body.title;
+      let fileName = req.file.filename;
+      let description = req.body.description;
+      db.query(
+        "INSERT INTO files (uid, title,filename,description) VALUES (?,?,?,?)",
+        [uid, fileTitle, fileName, description],
+        (err, result) => {
+          if (err) throw err;
+          res.json({ ack: 1 });
+        }
+      );
+    }
+  }
+);
 app.get("/profile", (req, res) => {
   const id = req.respose.data.rrslt.id;
   res.json(id);
