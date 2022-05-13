@@ -118,13 +118,17 @@ const verifyJWT = (req, res, next) => {
   }
 };
 app.get("/download", verifyJWT, (req, res) => {
-  res.download("./uploads/" + req.query.filename);
+  console.log(DIR + "/" + req.query.filename);
+  res.download(DIR + "/" + req.query.filename);
+});
+app.get("/imgPreview", verifyJWT, (req, res) => {
+  res.sendFile(__dirname + "/uploads/" + req.query.filename);
 });
 app.get("/getUserFiles", verifyJWT, (req, res) => {
   if (req.session.user) {
     const uid = req.session.user[0].uid;
     db.query(
-      "SELECT title,filename,description FROM files WHERE uid=?",
+      "SELECT filename,type,description,DateAdded FROM files WHERE uid=?",
       [uid],
       (err, result) => {
         if (err) throw err;
@@ -177,11 +181,11 @@ app.post("/login", (req, res) => {
               })
               .json({ ack: true });
           } else {
-            res.status(401).json({ ack: false, mesage: "wrong credentials" });
+            res.json({ ack: false, message: "Wrong Credentials!" });
           }
         });
       } else {
-        res.status(401).json({ ack: false, mesage: "wrong credentials" });
+        res.json({ ack: false, message: "Wrong Credentials!" });
       }
     }
   );
@@ -193,12 +197,13 @@ app.post(
   function (req, res) {
     if (req.session.user) {
       let uid = req.session.user[0].uid;
-      let fileTitle = req.body.title;
-      let fileName = req.file.filename;
+      let fileArray = req.file.filename.split(".");
+      let fileName = fileArray[0];
+      let type = "." + fileArray[1];
       let description = req.body.description;
       db.query(
-        "INSERT INTO files (uid, title,filename,description) VALUES (?,?,?,?)",
-        [uid, fileTitle, fileName, description],
+        "INSERT INTO files (uid,filename,type,description,DateAdded) VALUES (?,?,?,?,NOW())",
+        [uid, fileName, type, description],
         (err, result) => {
           if (err) throw err;
           res.json({ ack: 1 });
@@ -207,6 +212,7 @@ app.post(
     }
   }
 );
+
 app.get("/profile", (req, res) => {
   const id = req.respose.data.rrslt.id;
   res.json(id);
