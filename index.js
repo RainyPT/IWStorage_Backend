@@ -197,7 +197,7 @@ app.post(
   upload.single("uploaded_file"),
   function (req, res) {
     if (req.session.user) {
-      if (req.file.filename) {
+      if (req.file.key) {
         let uid = req.session.user.uid;
         let fileArray = req.file.filename.split(".");
         let fileName = fileArray[0];
