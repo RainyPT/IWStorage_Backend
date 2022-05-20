@@ -2,7 +2,6 @@ const express = require("express");
 const mysql = require("mysql");
 const dotenv = require("dotenv");
 const cors = require("cors");
-
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
@@ -31,12 +30,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   session({
-    key: "userId",
-    secret: "secretSssion",
-    resave: false,
-    saveUninittialized: false,
+    key: "uid",
+    secret: "ondabanksbaby",
+    resave: true,
+    saveUninitialized: true,
     cookie: {
-      expires: 60 * 60 * 24,
+      expires: 60 * 60 * 24 * 1000,
     },
   })
 );
@@ -62,16 +61,11 @@ const storage = multer.diskStorage({
     cb(null, DIR);
   },
   filename: (req, file, cb) => {
-    const fileName = file.originalname.split(" ").join("_");
-    let dotArray = fileName.split(".");
+    let dotArray = file.originalname.split(".");
+    const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
+    const newFileName = dotArray[0] + "-" + uniqueSuffix;
     let extension = "." + dotArray.pop();
-    const newFileName =
-      Buffer.from(req.session.user[0].uid + "-" + dotArray.join("")).toString(
-        "base64"
-      ) + extension;
-    dotArray[dotArray.length - 1];
-
-    cb(null, newFileName);
+    cb(null, Buffer.from(newFileName).toString("base64") + extension);
   },
 });
 
@@ -108,7 +102,7 @@ const verifyJWT = (req, res, next) => {
         if (err) {
           res.status(403).json({ auth: false });
         } else {
-          req.userId = decoded.userID;
+          req.uid = decoded.uid;
           next();
         }
       });
@@ -118,7 +112,6 @@ const verifyJWT = (req, res, next) => {
   }
 };
 app.get("/download", verifyJWT, (req, res) => {
-  console.log(DIR + "/" + req.query.filename);
   res.download(DIR + "/" + req.query.filename);
 });
 app.get("/imgPreview", verifyJWT, (req, res) => {
@@ -126,7 +119,7 @@ app.get("/imgPreview", verifyJWT, (req, res) => {
 });
 app.get("/getUserFiles", verifyJWT, (req, res) => {
   if (req.session.user) {
-    const uid = req.session.user[0].uid;
+    const uid = req.session.user.uid;
     db.query(
       "SELECT filename,type,description,DateAdded FROM files WHERE uid=?",
       [uid],
@@ -165,12 +158,15 @@ app.post("/login", (req, res) => {
         bcrypt.compare(password, result[0].password, (error, response) => {
           if (response) {
             const id = result[0].uid;
-            let payload = { userID: id };
+            let payload = { uid: id };
             const token = jwt.sign(payload, jwtSecret, {
               noTimestamp: true,
               expiresIn: "24h",
             });
-            req.session.user = result;
+            req.session.user = {
+              uid: result[0].uid,
+              username: result[0].username,
+            };
 
             res
               .status(200)
@@ -196,27 +192,26 @@ app.post(
   upload.single("uploaded_file"),
   function (req, res) {
     if (req.session.user) {
-      let uid = req.session.user[0].uid;
-      let fileArray = req.file.filename.split(".");
-      let fileName = fileArray[0];
-      let type = "." + fileArray[1];
-      let description = req.body.description;
-      db.query(
-        "INSERT INTO files (uid,filename,type,description,DateAdded) VALUES (?,?,?,?,NOW())",
-        [uid, fileName, type, description],
-        (err, result) => {
-          if (err) throw err;
-          res.json({ ack: 1 });
-        }
-      );
+      if (req.file.filename) {
+        let uid = req.session.user.uid;
+        let fileArray = req.file.filename.split(".");
+        let fileName = fileArray[0];
+        let type = "." + fileArray[1];
+        let description = req.body.description;
+        db.query(
+          "INSERT INTO files (uid,filename,type,description,DateAdded) VALUES (?,?,?,?,NOW())",
+          [uid, fileName, type, description],
+          (err, result) => {
+            if (err) throw err;
+            res.json({ ack: true });
+          }
+        );
+      } else {
+        res.json({ ack: false, message: "Repeated file name!" });
+      }
     }
   }
 );
-
-app.get("/profile", (req, res) => {
-  const id = req.respose.data.rrslt.id;
-  res.json(id);
-});
 
 app.listen(3001, () => {
   console.log("Server started on port 3001");
