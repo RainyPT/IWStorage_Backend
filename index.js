@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const multer = require("multer");
+aws.config.loadFromPath("./");
 var s3 = new aws.S3({
   /* ... */
 });
@@ -67,6 +68,7 @@ var upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: "sicfinalstorage",
+
     key: function (req, file, cb) {
       let dotArray = file.originalname.split(".");
       const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
