@@ -70,6 +70,7 @@ var upload = multer({
     bucket: "sicfinalstorage",
 
     key: function (req, file, cb) {
+      console.log(file);
       let dotArray = file.originalname.split(".");
       const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
       const newFileName = dotArray[0] + "-" + uniqueSuffix;
