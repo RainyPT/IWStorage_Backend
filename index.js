@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(
   cors({
-    origin: ["http://sicfinareactapp.s3-website.eu-west-3.amazonaws.com"],
+    origin: ["http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3000/"],
     methods: ["GET", "POST"],
     credentials: true,
   })
