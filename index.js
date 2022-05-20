@@ -25,7 +25,7 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
-app.use(express.static("./.well-known/"));
+app.use(express.static("public"));
 app.use(
   cors({
     origin: ["https://d38lbxvhh2e04x.cloudfront.net"],
@@ -220,6 +220,6 @@ app.post(
   }
 );
 
-app.listen(80, () => {
+app.listen(3001, () => {
   console.log("Server started on port 3001");
 });
