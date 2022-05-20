@@ -25,7 +25,7 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
-app.use(express.static("/.well-known/pki-validation/"));
+app.use(express.static("./.well-known/"));
 app.use(
   cors({
     origin: ["https://d38lbxvhh2e04x.cloudfront.net"],
