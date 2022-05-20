@@ -26,7 +26,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3000"],
+    origin: ["*"],
     methods: ["GET", "POST"],
     credentials: true,
   })
