@@ -1,12 +1,18 @@
 const express = require("express");
 const mysql = require("mysql");
 const dotenv = require("dotenv");
+var aws = require("aws-sdk");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const multer = require("multer");
+var s3 = new aws.S3({
+  /* ... */
+});
 const DIR = "./uploads";
+
+var multerS3 = require("multer-s3");
 
 const bcrypt = require("bcrypt");
 const saltRouts = 10;
@@ -20,7 +26,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -43,6 +49,7 @@ app.use(
 const db = mysql.createConnection({
   host: process.env.HOST,
   user: process.env.USER,
+  password: process.env.PASSWORD,
   database: process.env.DATABASE,
 });
 
@@ -56,21 +63,18 @@ db.connect((error) => {
   }
 });
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, DIR);
-  },
-  filename: (req, file, cb) => {
-    let dotArray = file.originalname.split(".");
-    const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
-    const newFileName = dotArray[0] + "-" + uniqueSuffix;
-    let extension = "." + dotArray.pop();
-    cb(null, Buffer.from(newFileName).toString("base64") + extension);
-  },
-});
-
 var upload = multer({
-  storage: storage,
+  storage: multerS3({
+    s3: s3,
+    bucket: "sicfinalstorage",
+    key: function (req, file, cb) {
+      let dotArray = file.originalname.split(".");
+      const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
+      const newFileName = dotArray[0] + "-" + uniqueSuffix;
+      let extension = "." + dotArray.pop();
+      cb(null, Buffer.from(newFileName).toString("base64") + extension);
+    },
+  }),
 });
 
 app.post("/register", (req, res) => {
