@@ -28,10 +28,7 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(
   cors({
-    origin: [
-      "http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3000",
-      "http://sicfinareactapp.s3-website.eu-west-3.amazonaws.com",
-    ],
+    origin: ["https://d38lbxvhh2e04x.cloudfront.net"],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -183,6 +180,7 @@ app.post("/login", (req, res) => {
                 httpOnly: true,
                 expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
                 sameSite: "None",
+                secure: true,
               })
               .json({ ack: true });
           } else {
