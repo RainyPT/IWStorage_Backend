@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(
   cors({
-    origin: ["https://d38lbxvhh2e04x.cloudfront.net"],
+    origin: ["http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -220,6 +220,6 @@ app.post(
   }
 );
 
-app.listen(443, () => {
+app.listen(3001, () => {
   console.log("Server started on port 3001");
 });
