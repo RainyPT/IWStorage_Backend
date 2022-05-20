@@ -176,7 +176,8 @@ app.post("/login", (req, res) => {
               .cookie("access_token", token, {
                 httpOnly: true,
                 expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-                secure: false,
+                secure: true,
+                sameSite: "none",
               })
               .json({ ack: true });
           } else {
