@@ -19,7 +19,7 @@ const saltRouts = 10;
 
 const jwt = require("jsonwebtoken");
 
-dotenv.config({ path: "./.env" });
+require("dotenv").config();
 
 const app = express();
 
@@ -45,15 +45,14 @@ app.use(
     },
   })
 );
-
 const db = mysql.createConnection({
-  host: process.env.HOST,
-  user: process.env.USER,
-  password: process.env.PASSWORD,
-  database: process.env.DATABASE,
+  host: "dabanks.cjx6xiorqyuq.eu-west-3.rds.amazonaws.com",
+  user: "root",
+  password: "ondabanks",
+  database: "iwstorage",
 });
 
-const jwtSecret = process.env.JWTSECRET;
+const jwtSecret = "20nestetrabalho";
 
 db.connect((error) => {
   if (error) {
