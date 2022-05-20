@@ -32,10 +32,6 @@ app.use(
     credentials: true,
   })
 );
-
-app.get("*", (req, res) => {
-  res.sendFile(join(__dirname, "build", "index.html"));
-});
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
