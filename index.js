@@ -71,7 +71,6 @@ var upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: "sicfinalstorage",
-
     key: function (req, file, cb) {
       let dotArray = file.originalname.split(".");
       const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
@@ -182,8 +181,6 @@ app.post("/login", (req, res) => {
               .cookie("access_token", token, {
                 httpOnly: true,
                 expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-                sameSite: "None",
-                secure: true,
               })
               .json({ ack: true });
           } else {
