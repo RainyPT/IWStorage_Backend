@@ -7,6 +7,8 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const multer = require("multer");
+
+const path = require("node:path");
 aws.config.loadFromPath("./config.json");
 var s3 = new aws.S3({
   /* ... */
