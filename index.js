@@ -30,7 +30,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   cors({
-    origin: ["http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3000"],
+    origin: ["http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3001"],
     methods: ["GET", "POST"],
     credentials: true,
   })
