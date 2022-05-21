@@ -29,9 +29,6 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/*", function (req, res) {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 app.use(
   cors({
     origin: ["http://ec2-13-38-130-5.eu-west-3.compute.amazonaws.com:3000"],
