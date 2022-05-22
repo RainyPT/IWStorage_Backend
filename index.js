@@ -88,7 +88,7 @@ app.post("/register", (req, res) => {
     "SELECT username FROM users WHERE username=?",
     [username],
     (e, r) => {
-      if (err) throw err;
+      if (e) throw err;
       if (r.length == 0) {
         bcrypt.hash(password, saltRouts, (err, hash) => {
           if (err) {
