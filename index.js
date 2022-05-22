@@ -84,19 +84,30 @@ app.post("/register", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  bcrypt.hash(password, saltRouts, (err, hash) => {
-    if (err) {
-      throw err;
-    }
-    db.query(
-      "INSERT INTO users (username, password) VALUES (?,?)",
-      [username, hash],
-      (err, result) => {
-        if (err) throw err;
-        res.send({ ack: 1 });
+  db.query(
+    "SELECT username FROM users WHERE username=?",
+    [username],
+    (e, r) => {
+      if (err) throw err;
+      if (r.length == 0) {
+        bcrypt.hash(password, saltRouts, (err, hash) => {
+          if (err) {
+            throw err;
+          }
+          db.query(
+            "INSERT INTO users (username, password) VALUES (?,?)",
+            [username, hash],
+            (err, result) => {
+              if (err) throw err;
+              res.send({ ack: 1 });
+            }
+          );
+        });
+      } else {
+        res.send({ ack: 0, message: "User with same name already exists!" });
       }
-    );
-  });
+    }
+  );
 });
 
 const verifyJWT = (req, res, next) => {
