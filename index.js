@@ -13,7 +13,6 @@ aws.config.loadFromPath("./config.json");
 var s3 = new aws.S3({
   /* ... */
 });
-const DIR = "./uploads";
 
 var multerS3 = require("multer-s3");
 
@@ -120,7 +119,19 @@ const verifyJWT = (req, res, next) => {
   }
 };
 app.get("/download", verifyJWT, (req, res) => {
-  res.download(DIR + "/" + req.query.filename);
+  const s3Params = {
+    Bucket: "sicfinalstorage",
+    Key: req.query.filename,
+  };
+
+  s3.getObject(s3Params, (err, res) => {
+    if (err === null) {
+      res.attachment(req.query.filename);
+      res.send(data.Body);
+    } else {
+      res.status(500).send(err);
+    }
+  });
 });
 app.get("/imgPreview", verifyJWT, (req, res) => {
   res.sendFile(__dirname + "/uploads/" + req.query.filename);
