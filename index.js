@@ -119,19 +119,15 @@ const verifyJWT = (req, res, next) => {
   }
 };
 app.get("/download", verifyJWT, (req, res) => {
-  const s3Params = {
+  var fileKey = req.query.filename;
+  var options = {
     Bucket: "sicfinalstorage",
-    Key: req.query.filename,
+    Key: fileKey,
   };
 
-  s3.getObject(s3Params, (err, res) => {
-    if (err === null) {
-      res.attachment(req.query.filename);
-      res.send(data.Body);
-    } else {
-      res.status(500).send(err);
-    }
-  });
+  res.attachment(fileKey);
+  var fileStream = s3.getObject(options).createReadStream();
+  fileStream.pipe(res);
 });
 app.get("/imgPreview", verifyJWT, (req, res) => {
   res.sendFile(__dirname + "/uploads/" + req.query.filename);
